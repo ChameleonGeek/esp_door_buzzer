@@ -1,2 +1,16 @@
 ESP Door Buzzer
-This project will provide easier access to an electrically locked door, allowing patrons of a shared space to enter the space without needing constant member intervention.
+This project will provide easier access to an electrically locked door, allowing patrons of a shared space to enter the space without needing constant member intervention.  
+
+It will use an ESP32 which connects to the primary network inside the space.  The ESP32 will also operate as an access point configured as a captive portal. The captive portal page will present different options depending upon the status of the person who connects to the access point.
+
+Registration:
+When the user first connects to the Access Point, the ESP will read the MAC Address of the device that connected.  The ESP will use an API call over the primary network to determine if the MAC Address is already registered.  If not, the user will be prompted to enter their name and phone number.  The captive portal page will POST the entered information and store MAC, Name and phone number.
+
+Authorization:
+Staff who work at the space and are authorized to do so will link the MAC address and name to the membership system.  This link will allow a check for the patron's permissions to enter.
+
+"Knocking on the door:"
+During later visits to the space, the registered patron will connect to the ESP Access Point again.  The ESP will use the MAC Address to identify the patron and text the patron a one-time code.  Once the patron receives the one-time code, they enter it into the web form and the ESP will trigger the electronic door lock.
+
+
+TO DO/TO CONSIDER:
