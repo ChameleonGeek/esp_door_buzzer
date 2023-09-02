@@ -31,4 +31,11 @@ While the MAC Address may not be a viable key to identify the user over time, it
 
 Since multiple devices can be connected to the ESP AP at the same time, find a way to ensure that the ESP knows definitively which device (by MAC or username) is actively being communicated with.  Failure to do so can cause sending the 2FA code to the wrong phone number.
 
-HTTPS may be sufficiently secure to bypass the 2FA requirement, letting the user simply enter username and password on the captive portal page.  Determine how certificates are handled in the process, which may exceed the minimal instruction/training goal of this project.
+HTTPS may be sufficiently secure to bypass the 2FA requirement, letting the user simply enter username and password on the captive portal page.  Determine how certificates are handled in the process, which may exceed the minimal instruction/training goal of this project.  
+
+Since the captive portal will benefit multiple projects I have in the works where security isn't a concern, that will be my first focus.
+
+## History/ Notes
+I tried the example offered at https://blog.bajonczak.com/implementing-a-captive-portal-for-your-esp-device/ - the captive portal worked "half way."  My Windows PC immediately opened the captive portal page.  So did my Ubuntu 22.04 laptop.  My Android phone did not.  Did not test an iPhone.  Since phones are the primary type of device intended to use this project, automatically opening the page is a pretty high priority.  On the Android phone, all it seems to do is block all traffic except for local to the ESP32 AP network.
+
+A QR code visible from the door may be a workaround to load the captive portal page - not at all ideal, but would be functional...
