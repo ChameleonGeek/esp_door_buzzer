@@ -1,41 +1,51 @@
 # ESP Door Buzzer
-This project is still in the early steps of development.  Any code currently attached to this repository will be unstable and at best only partly functional.  This ReadMe document will also be changed to more clearly specify plans and functionality of the project.
+There are two parts to this project.  This repository is being used to develop the part that resides on an ESP32.  I am in the early stages of developing it, so this repository will be mainly for my notes and stream of thought as it is developed.  Once it is functional, the repo will be fine-tuned to be fully functional and will include my notes related to any discoveries that may be useful for others using some of the functionality on the edges of what this project is being developed for.
 
-A primary goal of the project is to provide a solution which requires as little instruction and training as possible.  If training is required to use it, most targeted users will opt out of using it.
+This project is intended to streamline access into a shared space by interfacing with an electronically-controlled "buzz in" door lock.  Users of the space are members, patrons, and visitors.  Members have keys and permission from the organization to open the space and make it available to other members and to patrons in good standing.  At some times, the member(s) can and will allow visitors into the space as well.  This project will not give visitors access to the space.  This project will not bypass traditional security as far as the requirements of members to physically act within the space to authorize patrons to enter, and to enable the ESP32 to interface with the door lock.  
 
-This project will provide easier access to an electrically locked door, allowing patrons of a shared space to enter the space without needing constant member intervention.  While the interaction with this project *may* be performed with a laptop or tablet, the target audience will predominantly use Android or iOS phones.
+For the project to be successful (actually be used), it must require as little training as possible and must not require any software not commonly used by patrons or members - KISS.  The more steps in the process or the more training needed, the less this project will be used.  While users can connect to this project with tablets or laptops, the project is designed to be used primarily with smartphones.  Little, if any, testing will be performed to ensure compatibility with devices other than smartphones.
 
-It will use an ESP32 which connects to the primary wireless network inside the space.  The ESP32 will also operate as an access point configured as a captive portal. The captive portal page will present different options depending upon the status of the person who connects to the access point.
+There are ways to make the end result of this project more secure than it will be.  These ways will not be implemented.  First - this project is not intended to give anyone access to the space without an attending member being present on site to perform final verification whether the patron is allowed to enter.  Each of the additional tools and techniques that will make the system more secure considered so far requires the user to receive more detailed training, and most of them require the user to install and/or learn additional software - this violates the KISS principle required to make it useful.
 
-This is not intended to be high level security.  It is intended to offer a moderate level of filtering access to the site, with responsible staff working at the space performing final determinations as to whether the individual granted access by the ESP is permitted to remain in the space.
+The member who is at the space and opens it up for members and patrons will flip a DPST or DPDT mechanical switch.  That switch will notify the ESP that a member is present and has opened the space, enabling control of the door.  It will also provide a mechanical disconnect between the ESP and the electronic door lock for added security.
 
-This is not intended to manage 100% of the access control at the space.  It is intended to reduce, not eliminate, the frequency in which staff is required to stop their other activities and open the door or manually buzz in patrons.  Since the project relies on external services, outages or delays in these services will impact QoS - at which time patrons can revert to status quo and knock on the door to request access.
+### Operational Basics
+1. Members and patrons will connect to an access point created by the ESP32.
+2. The ESP will use a captive portal to direct the user to a webpage hosted by the ESP.  On that webpage, the user will enter authentication information.  
+3. The ESP will query an external database to determine if the authenticated user is in good standing.
+4. If the user is in good standing **and** a member has set the switch to the "open for patrons" position, the ESP will "buzz in" the user.
+5. If the user is not buzzed in, they can ring the doorbell and a member can determine if the user can enter the space.
+6. The ESP will operate as an Access Point and will be connected to the WiFi network internal to the space.  The second connection will allow the ESP to bridge the gap between the outside world and the space's much more secure network in order to provide very specific queries via API calls.
 
-Since the goal of this project is to make life easier for staff and patrons alike, this project uses functions and software the patrons already frequently use.  Some tools which offer a far greater level of security have been suggested, but each requires patrons to install or access software they don't already use.  A goal of this project is to provide access control to the space *and* require as close to zero instruction as possible.  If training is needed for average users, this project will be too complicated to be used by most patrons, which will make it fail its primary goal.
+### Initial registration
+1. The ESP will not know whether the phone that connects belongs to a registered user or not.
+1. The user will connect to the ESP Access Point.  A QR code visible from the door can be used to offer access point and passcode information.
+1. The user's device will automatically open the captive portal page, or will offer a one-click alert to open it.
+1. The unregistered user will enter a username and password on the captive portal page, and will submit the form.
+1. If the username is not in the user control database, the ESP will ask the user to re-enter the password.
+1. If the passwords match, the username and password will be stored in the user database (not on the ESP itself)
+1. The system will not grant access to the new user, so they will need to ring the doorbell, which is the current status quo.
 
-**NOTE:**  I am aware that using the MAC address is probably not a viable option, as modern smartphones are implementing changing MAC addresses to prevent unauthorized tracking of the phone and therefore its owner.  Patrons may need to enter a unique username instead of have the ESP use the phone's MAC Address.
+### Authorization
+1. A member who is authorized to do so will link the username created during initial registration to the organization's membership and dues database via user id.  This will allow the ESP to query whether the user is a member or patron in good standing.  Linking the username given the ESP to the user in the membership database is the entirety of the authorization process.
+1. Once the user has been authorized, they will be permitted to "knock on the door" with the system.
 
-### Registration:
-When the user first connects to the Access Point, the ESP will read the MAC Address of the device that connected.  The ESP will use an API call over the primary network to determine if the MAC Address is already registered.  If not, the user will be prompted to enter their name and phone number.  The captive portal page will POST the entered information and store MAC, Name and phone number.
+### "Knock on the door"
+1. The user will connect to the access point and enter their username.
+1. The ESP will determine whether that username is associated with a registered user.
+1. If properly associated, the ESP will present a webpage welcoming the user by name and ask for their password.
+1. Once the ESP has the username and password, it will verify the user's status and buzz the door or tell the user to ring the doorbell.
 
-### Authorization:
-Staff who work at the space and are authorized to do so will link the MAC address and name to the membership system.  This link will allow a check for the patron's permissions to enter once the user connects to the Access Point at the start of subsequent visits.
+## NOTES
+1. As of Sept. 5 2023, I have been able to integrate the ESP joining a WiFi network, offering an Access Point to users, serving both HTTP and HTTPS pages and triggering a captive portal response in Windows, Ubuntu and Android.  As of last compile, the sketch only uses 1.1MB of program storage and 53KB of dynamic memory.  Since the plan is to use the "Huge APP (3MB No OTA/1MB SPIFFS)" option, there is ample room to include the additional functionality the project requires.
 
-### "Knocking on the door:"
-During later visits to the space, the registered patron will connect to the ESP Access Point again.  The ESP will use the MAC Address to identify the patron and text the patron a one-time code.  Once the patron receives the one-time code, they enter it into the web form and the ESP will trigger the electronic door lock.  The one-time code will expire once it is used, or after a timeframe to be specified later.
+1. I need to find a way to kick off users who connect to the Access Point after they have completed registration/authentication.  While operating an HTTPS server, it appears that only four clients can be connected to the ESP.  If users who have "knocked on the door" remain connected after they have knocked, they will prevent other users from connecting.
 
-## TO DO/TO CONSIDER:
-Solidify the captive portal process.  In initial attempts, the captive portal opens the portal page automatically on a Windows PC, but not on an Android phone.  No testing has been performed on iOS devices or Linux.
+1. I want to find a way to scan for access points which might try to impersonate the ESP.  If other APs with the same SSID are present, visually notify users with lights inaccessible from the outside of the space.  This is quite easy, but I need to see if the scan can be done while the ESP is hosting the Access Point *and* is connected to the internal WiFi network.  The ESP can stay disconnected until it needs to query the status of a user and scan for rogue access points in its "free time."
 
-While the MAC Address may not be a viable key to identify the user over time, it appears it will be essential during the short time interactions with the ESP.
+1. Determine if the best way to access the user/password/patron_id database is an external database or on SPIFFS.
 
-Since multiple devices can be connected to the ESP AP at the same time, find a way to ensure that the ESP knows definitively which device (by MAC or username) is actively being communicated with.  Failure to do so can cause sending the 2FA code to the wrong phone number.
+1. Determine if the ESP32 captive portal will work with HTTPS.  Standard captive portals spawn an HTTP connection, which then redirects to an HTTPS.
 
-HTTPS may be sufficiently secure to bypass the 2FA requirement, letting the user simply enter username and password on the captive portal page.  Determine how certificates are handled in the process, which may exceed the minimal instruction/training goal of this project.  
+1. Determine if HTTPS is sufficiently secure and meets the KISS requirements of the project, or use 2FA by sending a four digit pass code (short lifespan, one time use) to the phone number registered to the user.  Certificate management to create the trust relationship for HTTPS may violate KISS.
 
-Since the captive portal will benefit multiple projects I have in the works where security isn't a concern, that will be my first focus.
-
-## History/ Notes
-I tried the example offered at https://blog.bajonczak.com/implementing-a-captive-portal-for-your-esp-device/ - the captive portal worked "half way."  My Windows PC immediately opened the captive portal page.  So did my Ubuntu 22.04 laptop.  My Android phone did not.  Did not test an iPhone.  Since phones are the primary type of device intended to use this project, automatically opening the page is a pretty high priority.  On the Android phone, all it seems to do is block all traffic except for local to the ESP32 AP network.
-
-A QR code visible from the door may be a workaround to load the captive portal page - not at all ideal, but would be functional...
