@@ -39,6 +39,8 @@ The member who is at the space and opens it up for members and patrons will flip
 ## NOTES
 1. As of Sept. 5 2023, I have been able to integrate the ESP joining a WiFi network, offering an Access Point to users, serving both HTTP and HTTPS pages and triggering a captive portal response in Windows, Ubuntu and Android.  As of last compile, the sketch only uses 1.1MB of program storage and 53KB of dynamic memory.  Since the plan is to use the "Huge APP (3MB No OTA/1MB SPIFFS)" option, there is ample room to include the additional functionality the project requires.
 
+1. As of Sep. 6 2023, I have integrated an SSD1306 128x64 OLED, and the OLED notifies the user of the current status of network connections and whether the space is "open" by reading the state of the switch.  The OLED I am using uses SPI address 0x3C, not the usual 0X3D.
+![CLOSED](photo_2023-09-07_19-25-21.jpg)
 1. I need to find a way to kick off users who connect to the Access Point after they have completed registration/authentication.  While operating an HTTPS server, it appears that only four clients can be connected to the ESP.  If users who have "knocked on the door" remain connected after they have knocked, they will prevent other users from connecting.
 
 1. I want to find a way to scan for access points which might try to impersonate the ESP.  If other APs with the same SSID are present, visually notify users with lights inaccessible from the outside of the space.  This is quite easy, but I need to see if the scan can be done while the ESP is hosting the Access Point *and* is connected to the internal WiFi network.  The ESP can stay disconnected until it needs to query the status of a user and scan for rogue access points in its "free time."
